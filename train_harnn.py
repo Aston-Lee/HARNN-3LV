@@ -45,6 +45,7 @@ def train_harnn():
     #print('第45行')
     # Build vocabulary
     VOCAB_SIZE, EMBEDDING_SIZE, pretrained_word2vec_matrix = dh.load_word2vec_matrix(args.word2vec_file)
+    print("from train_harnn line 48, VOCAB_SIZE: ",VOCAB_SIZE,"EMBEDDING_SIZE: " EMBEDDING_SIZE)
 
 
     # Build a graph and harnn object
