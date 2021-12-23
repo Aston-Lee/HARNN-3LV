@@ -266,6 +266,9 @@ def create_metadata_file(word2vec_file, output_file):
     if not os.path.isfile(word2vec_file):
         raise IOError("[Error] The word2vec file doesn't exist.")
 
+
+    # tokenizer = BertTokenizer.from_pretrained("MODEL_NAME")
+    # model = BertModel.from_pretrained("MODEL_NAME")
     model = gensim.models.Word2Vec.load(word2vec_file)
     word2idx = dict([(k, v.index) for k, v in model.wv.vocab.items()])
     word2idx_sorted = [(k, word2idx[k]) for k in sorted(word2idx, key=word2idx.get, reverse=False)]
