@@ -1,6 +1,9 @@
 # -*- coding:utf-8 -*-
 __author__ = 'Randolph'
 
+import warnings
+warnings.filterwarnings('ignore')
+
 import os
 import sys
 import time

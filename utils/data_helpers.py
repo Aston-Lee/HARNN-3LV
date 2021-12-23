@@ -1,6 +1,9 @@
 # -*- coding:utf-8 -*-
 __author__ = 'Randolph'
 
+import warnings
+warnings.filterwarnings('ignore')
+
 import os
 import time
 import heapq
@@ -14,6 +17,9 @@ from pylab import *
 from texttable import Texttable
 from gensim.models import word2vec
 from tflearn.data_utils import pad_sequences
+
+import torch
+from transformers import BertTokenizer,BertModel
 
 def _option(pattern):
     """
@@ -266,10 +272,14 @@ def create_metadata_file(word2vec_file, output_file):
     if not os.path.isfile(word2vec_file):
         raise IOError("[Error] The word2vec file doesn't exist.")
 
+    BERT_path_root = "./data/chinese-roberta-wwm-ext-large"
+    tokenizer = BertTokenizer.from_pretrained(BERT_path_root)
+    model = BertModel.from_pretrained(BERT_path_root)
+    EXAMPLE_SENTENCE = "你好，我的名字是吳曉光"
+    encodes = tokenizer.encode(EXAMPLE_SENTENCE, add_special_tokens=True)
+    print(encodes)
 
-    # tokenizer = BertTokenizer.from_pretrained("MODEL_NAME")
-    # model = BertModel.from_pretrained("MODEL_NAME")
-    model = gensim.models.Word2Vec.load(word2vec_file)
+    # model = gensim.models.Word2Vec.load(word2vec_file)
     word2idx = dict([(k, v.index) for k, v in model.wv.vocab.items()])
     word2idx_sorted = [(k, word2idx[k]) for k in sorted(word2idx, key=word2idx.get, reverse=False)]
 
@@ -305,6 +315,23 @@ def load_word2vec_matrix(word2vec_file):
         if key is not None:
             embedding_matrix[value] = model[key]
     return vocab_size, embedding_size, embedding_matrix
+
+
+def bert_encode(data,maximum_length) :
+    input_ids = []
+    attention_masks = []
+
+    for i in range(len(data)):
+        encoded = tokenizer.encode_plus(
+            data[i],
+            add_special_tokens=True,
+            max_length=maximum_length,
+            pad_to_max_length=True,
+            return_attention_mask=True,
+        )
+        input_ids.append(encoded['input_ids'])
+        attention_masks.append(encoded['attention_mask'])
+    return np.array(input_ids),np.array(attention_masks)
 
 
 def data_word2vec(input_file, num_classes_list, total_classes, word2vec_model):
@@ -522,11 +549,17 @@ def load_data_and_labels(data_file, num_classes_list, total_classes, word2vec_fi
     if not os.path.isfile(word2vec_file):
         raise IOError("[Error] The word2vec file doesn't exist. ")
     
-    #model = Word2Vec.load(word2vec_file)
-    model = word2vec.Word2Vec.load(word2vec_file)
+    BERT_path_root = "./data/chinese-roberta-wwm-ext-large"
+    tokenizer = BertTokenizer.from_pretrained(BERT_path_root)
+    BERT_model = BertModel.from_pretrained(BERT_path_root)
+    EXAMPLE_SENTENCE = "你好，我的名字是吳曉光"
+    encodes = tokenizer.encode(EXAMPLE_SENTENCE, add_special_tokens=True)
+
+    ##model = Word2Vec.load(word2vec_file)
+    # model = word2vec.Word2Vec.load(word2vec_file)
 
     # Load data from files and split by words
-    data = data_word2vec(data_file, num_classes_list, total_classes, word2vec_model=model)
+    data = data_word2vec(data_file, num_classes_list, total_classes, model=BERT_model)
     if data_aug_flag:
         data = data_augmented(data)
 
