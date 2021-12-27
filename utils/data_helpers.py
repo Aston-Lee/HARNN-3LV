@@ -308,12 +308,26 @@ def load_word2vec_matrix(word2vec_file):
 
     model = gensim.models.Word2Vec.load(word2vec_file)
     vocab_size = model.wv.vectors.shape[0]
-    embedding_size = model.vector_size
+    embedding_size = model.vector_size  # embedding_size = 256
     vocab = dict([(k, v.index) for k, v in model.wv.vocab.items()])
     embedding_matrix = np.zeros([vocab_size, embedding_size])
     for key, value in vocab.items():
         if key is not None:
             embedding_matrix[value] = model[key]
+    return vocab_size, embedding_size, embedding_matrix
+
+    # BERT
+    BERT_path_root = "./data/chinese-roberta-wwm-ext-large"
+    tokenizer = BertTokenizer.from_pretrained(BERT_path_root)
+    bert = BertModel.from_pretrained(BERT_path_root)
+    token_embedding = {token: bert.get_input_embeddings()(torch.tensor(id))  for token, id in tokenizer.get_vocab().items()}
+    vocab_size = len(token_embedding)
+
+    embedding_size = len(token_embedding['[CLS]'])
+    embedding_matrix = np.zeros([vocab_size, embedding_size])
+    for token, id in tokenizer.get_vocab().items():
+        embedding_matrix[id] = token_embedding[token].detach().numpy()
+
     return vocab_size, embedding_size, embedding_matrix
 
 
@@ -349,9 +363,14 @@ def data_word2vec(input_file, num_classes_list, total_classes, word2vec_model):
     Raises:
         IOError: If the input file is not the .json file
     """
+    # w2v
     vocab = dict([(k, v.index) for (k, v) in word2vec_model.wv.vocab.items()])
 
-    def _token_to_index(content):
+    # #　# BERT
+    # vocab_file = bert_layer.resolved_object.vocab_file.asset_path.numpy() #The vocab file of bert for tokenizer
+    # tokenizer = BertTokenizer(vocab_file)
+
+    def _token_to_index(content): ## change the vocab part 
         result = []
         for item in content:
             word2id = vocab.get(item)
@@ -360,7 +379,7 @@ def data_word2vec(input_file, num_classes_list, total_classes, word2vec_model):
             result.append(word2id)
         return result
 
-    def _create_onehot_labels(labels_index, num_labels):
+    def _create_onehot_labels(labels_index, num_labels): ## no effect 
         label = [0] * num_labels
         for item in labels_index:
             label[int(item)] = 1
@@ -549,17 +568,17 @@ def load_data_and_labels(data_file, num_classes_list, total_classes, word2vec_fi
     if not os.path.isfile(word2vec_file):
         raise IOError("[Error] The word2vec file doesn't exist. ")
     
-    BERT_path_root = "./data/chinese-roberta-wwm-ext-large"
-    tokenizer = BertTokenizer.from_pretrained(BERT_path_root)
-    BERT_model = BertModel.from_pretrained(BERT_path_root)
-    EXAMPLE_SENTENCE = "你好，我的名字是吳曉光"
-    encodes = tokenizer.encode(EXAMPLE_SENTENCE, add_special_tokens=True)
+    # BERT_path_root = "./data/chinese-roberta-wwm-ext-large"
+    # tokenizer = BertTokenizer.from_pretrained(BERT_path_root)
+    # model = BertModel.from_pretrained(BERT_path_root)
+    # EXAMPLE_SENTENCE = "你好，我的名字是吳曉光"
+    # encodes = tokenizer.encode(EXAMPLE_SENTENCE, add_special_tokens=True)
 
-    ##model = Word2Vec.load(word2vec_file)
-    # model = word2vec.Word2Vec.load(word2vec_file)
+    #model = Word2Vec.load(word2vec_file)
+    model = word2vec.Word2Vec.load(word2vec_file)
 
     # Load data from files and split by words
-    data = data_word2vec(data_file, num_classes_list, total_classes, model=BERT_model)
+    data = data_word2vec(data_file, num_classes_list, total_classes, model)
     if data_aug_flag:
         data = data_augmented(data)
 

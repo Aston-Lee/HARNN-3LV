@@ -54,6 +54,12 @@ def parameter_parser():
                         default="./data/word2vec_ch/word2vec.model",
                         help="Word2vec file for embedding characters (the dim need to be the same as embedding dim).")
 
+    parser.add_argument("--BERT-file",
+                        nargs="?",
+                        default="./data/BERT/BERT_embedding.model",
+                        help="BERT file for embedding characters")
+                
+
     # Model Hyperparameters
     parser.add_argument("--pad-seq-len",
                         type=int,
