@@ -140,7 +140,7 @@ def parameter_parser():
     parser.add_argument("--epochs",
                         type=int,
                         default=8,
-                        help="Number of training epochs. (default: 20)")
+                        help="Number of training epochs. (default: 20), most used 8")
 
     parser.add_argument("--batch-size",
                         type=int,
@@ -149,7 +149,7 @@ def parameter_parser():
 
     parser.add_argument("--learning-rate",
                         type=float,
-                        default=0.001,
+                        default=0.001, 
                         help="Learning rate. (default: 0.001)")
 
     parser.add_argument("--decay-rate",
