@@ -382,6 +382,24 @@ def data_word2vec(input_file, num_classes_list, total_classes, word2vec_model):
             result.append(word2id)
         return result
 
+    # def _token_to_index(content): ## BERT sentence option
+    #     input_ids = []
+    #     attention_masks = []
+    #     for i in range(len(data)):
+    #         encoded = tokenizer.encode_plus(
+    #             data[i],
+    #             add_special_tokens=True,
+    #             max_length=128,
+    #             pad_to_max_length=True,
+    #             return_attention_mask=True,
+    #         )
+        
+    #         input_ids.append(encoded['input_ids'])
+    #         attention_masks.append(encoded['attention_mask'])
+
+    #     return np.array(input_ids)
+
+
     def _create_onehot_labels(labels_index, num_labels): ## no effect 
         label = [0] * num_labels
         for item in labels_index:
@@ -401,11 +419,20 @@ def data_word2vec(input_file, num_classes_list, total_classes, word2vec_model):
         onehot_labels_tuple_list = []
         total_line = 0
 
+        bert_content_list = []
+
         for eachline in fin:
             data = json.loads(eachline)
             patent_id = data['id']
             title_content = data['title']
             abstract_content = data['abstract']
+            ## expeirment
+            # bert_sentence =[] ## single words option   =>  bugged 
+            bert_sentence ="" ## sentence option
+            for words in abstract_content:
+                bert_sentence+=words
+            bert_content_list.append(bert_sentence)
+
             first_labels = data['section']
             second_labels = data['subsection']
             third_labels = data['group']
@@ -414,8 +441,12 @@ def data_word2vec(input_file, num_classes_list, total_classes, word2vec_model):
 
             id_list.append(patent_id)
             title_index_list.append(_token_to_index(title_content))
-            abstract_index_list.append(_token_to_index(abstract_content))
-            abstract_content_list.append(abstract_content)
+
+            # abstract_index_list.append(_token_to_index(abstract_content))
+            # abstract_content_list.append(abstract_content)
+            abstract_index_list.append(_token_to_index(bert_content_list))
+            abstract_content_list.append(bert_content_list)
+
             labels_list.append(total_labels)
             # labels_tuple = (_create_onehot_labels(first_labels, num_classes_list[0]),
             #                 _create_onehot_labels(second_labels, num_classes_list[1]),
