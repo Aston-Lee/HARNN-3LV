@@ -5,6 +5,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 import sys
 import time
 import logging
@@ -70,7 +71,7 @@ def train_harnn():
                 num_classes_list=args.num_classes_list,
                 total_classes=args.total_classes,
                 l2_reg_lambda=args.l2_lambda,
-                pretrained_embedding=pretrained_word2vec_matrix) ## need to swap to BERT embedding
+                pretrained_embedding=pretrained_word2vec_matrix) ## swappped to BERT embedding
 
             # Define training procedure
             with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):

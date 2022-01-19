@@ -321,14 +321,14 @@ def load_word2vec_matrix(word2vec_file):
     tokenizer = BertTokenizer.from_pretrained(BERT_path_root)
     bert = BertModel.from_pretrained(BERT_path_root)
     token_embedding = {token: bert.get_input_embeddings()(torch.tensor(id))  for token, id in tokenizer.get_vocab().items()}
-    vocab_size = len(token_embedding)
+    vocab_size = len(token_embedding) ## 21128 (vocab.txt size)
 
     embedding_size = len(token_embedding['[CLS]'])
     embedding_matrix = np.zeros([vocab_size, embedding_size])
     for token, id in tokenizer.get_vocab().items():
         embedding_matrix[id] = token_embedding[token].detach().numpy()
 
-    return vocab_size, embedding_size, embedding_matrix
+    return vocab_size, embedding_size, embedding_matrix ##  EMBEDDING_SIZE:  1024(hidden layer)
 
 
 def bert_encode(data,maximum_length) :
@@ -373,14 +373,31 @@ def data_word2vec(input_file, num_classes_list, total_classes, word2vec_model):
     # token_embedding = {token: bert.get_input_embeddings()(torch.tensor(id))  for token, id in tokenizer.get_vocab().items()}
     vocab = dict([(token, id) for token, id in tokenizer.get_vocab().items()])
 
+    # original 
     def _token_to_index(content): ## change the vocab part 
         result = []
         for item in content:
-            word2id = vocab.get(item)
+            # 1
+            word2id = tokenizer.convert_tokens_to_ids(item)
+            ## OR 2
+            # word2id = vocab.get(item)
             if word2id is None:
                 word2id = 0
             result.append(word2id)
         return result
+
+    # def _token_to_index(content): ## change the vocab part 
+    #     result = []
+    #     # for item in content:
+    #     marked_text = "[CLS] " + "".join(content) + " [SEP]"
+    #     tokenized_text = tokenizer.tokenize(marked_text)
+    #     word2id = tokenizer.convert_tokens_to_ids(tokenized_text)
+    #     # word2id = vocab.get(item)
+    #     # print(word2id)
+    #     if word2id is None:
+    #         word2id = 0
+    #     result.append(word2id)
+    #     return result
 
     # def _token_to_index(content): ## BERT sentence option
     #     input_ids = []
@@ -427,11 +444,12 @@ def data_word2vec(input_file, num_classes_list, total_classes, word2vec_model):
             title_content = data['title']
             abstract_content = data['abstract']
             ## expeirment
-            # bert_sentence =[] ## single words option   =>  bugged 
+            # bert_sentence =[] ## single words option   =>  bugged
+            #  
             bert_sentence ="" ## sentence option
             for words in abstract_content:
                 bert_sentence+=words
-            bert_content_list.append(bert_sentence)
+            abstract_content_list.append(bert_sentence)
 
             first_labels = data['section']
             second_labels = data['subsection']
@@ -442,10 +460,10 @@ def data_word2vec(input_file, num_classes_list, total_classes, word2vec_model):
             id_list.append(patent_id)
             title_index_list.append(_token_to_index(title_content))
 
-            # abstract_index_list.append(_token_to_index(abstract_content))
-            # abstract_content_list.append(abstract_content)
-            abstract_index_list.append(_token_to_index(bert_content_list))
-            abstract_content_list.append(bert_content_list)
+            abstract_index_list.append(_token_to_index(abstract_content))
+            abstract_content_list.append(abstract_content)
+            # abstract_index_list.append(_token_to_index(bert_content_list))
+            # abstract_content_list.append(bert_content_list)
 
             labels_list.append(total_labels)
             # labels_tuple = (_create_onehot_labels(first_labels, num_classes_list[0]),
@@ -603,7 +621,7 @@ def load_data_and_labels(data_file, num_classes_list, total_classes, word2vec_fi
         raise IOError("[Error] The word2vec file doesn't exist. ")
     
     BERT_path_root = "./data/chinese-roberta-wwm-ext-large"
-    tokenizer = BertTokenizer.from_pretrained(BERT_path_root)
+    # tokenizer = BertTokenizer.from_pretrained(BERT_path_root)
     model = BertModel.from_pretrained(BERT_path_root)
     # encodes = tokenizer.encode(EXAMPLE_SENTENCE, add_special_tokens=True)
 

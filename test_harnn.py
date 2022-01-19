@@ -2,6 +2,7 @@
 __author__ = 'Randolph'
 
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 import sys
 import time
 import logging
